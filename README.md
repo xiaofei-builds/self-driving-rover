@@ -25,15 +25,23 @@ Master that loop on a small rover and the concepts scale directly to full-size a
 | Phase | Goal | Key concepts |
 |-------|------|--------------|
 | 0 · Setup | Tools, repo, order parts | control loop, SBC, version control |
-| 1 · Make it move | Assemble; drive by code | motors, PWM, servos, actuators, headless control |
+| 1 · Make it move ✅| Assemble; drive by code | motors, PWM, servos, actuators, headless control |
 | 2 · Make it see | Camera + rule-based autonomy | computer vision, OpenCV, line following, obstacle avoidance |
 | 3 · Make it learn | Train a neural net to drive itself | data collection, training, inference, end-to-end learning |
 | 4 · Extend & document | One upgrade (3D printing / better sensor / ROS 2) + write-up | (varies) |
 
 ## Status
 
-🟢 **Phase 1 — assembling the rover.** Follow along in the commit history and project notes.
+🟢 **Phase 1 complete — it moves.** Servos calibrated, first autonomous drive done, camera feed verified. Code in `code/`, calibration values in `CALIBRATION.md`.
 
+🔜 **Phase 2 — make it see & react.** Closed-loop line-following / obstacle avoidance (next up).
 ---
 
 *Built as a learning project, with AI as PM, instructor, and engineering support.*
+## Progress
+
+- ✅ **Phase 0** — Pi flashed, PiCar-X assembled, repo set up
+- ✅ **Phase 1 — Make it move** — servos calibrated, first autonomous drive,
+  camera feed verified. See `code/` and `CALIBRATION.md`.
+- ⏳ **Phase 2 — Make it see & react** — closed-loop line-following / obstacle
+  avoidance (in progress)
