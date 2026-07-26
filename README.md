@@ -4,6 +4,10 @@ Learning robotics, autonomous vehicles, and physical AI by building a small came
 
 This repo documents a hands-on project to go from zero to a working self-driving robot, built by a non-engineer with AI as the entire support team. The goal is genuine fluency in how autonomous systems *perceive, decide, and act* — the same mental model behind real AV companies, at a $150 scale.
 
+## 🏁 Phase 2 demo — first clean lap (grayscale edge-following)
+<img width="320" height="568" alt="demo_loop" src="https://github.com/user-attachments/assets/0d13a8c7-2567-4cd1-a980-4cf2adc88be5" />
+
+
 ## The core idea: sense → think → act
 
 Every autonomous machine, from this rover to a robotaxi, runs the same loop dozens of times per second:
@@ -24,24 +28,17 @@ Master that loop on a small rover and the concepts scale directly to full-size a
 
 | Phase | Goal | Key concepts |
 |-------|------|--------------|
-| 0 · Setup | Tools, repo, order parts | control loop, SBC, version control |
+| 0 · Setup ✅| Tools, repo, order parts | control loop, SBC, version control |
 | 1 · Make it move ✅| Assemble; drive by code | motors, PWM, servos, actuators, headless control |
-| 2 · Make it see | Camera + rule-based autonomy | computer vision, OpenCV, line following, obstacle avoidance |
+| 2 · Make it see ✅| Camera + rule-based autonomy | computer vision, OpenCV, line following, obstacle avoidance |
 | 3 · Make it learn | Train a neural net to drive itself | data collection, training, inference, end-to-end learning |
 | 4 · Extend & document | One upgrade (3D printing / better sensor / ROS 2) + write-up | (varies) |
 
 ## Status
 
-🟢 **Phase 1 complete — it moves.** Servos calibrated, first autonomous drive done, camera feed verified. Code in `code/`, calibration values in `CALIBRATION.md`.
+🟢 **Phase 2 complete — it sees and reacts.** Closed-loop obstacle avoidance (ultrasonic) and grayscale edge-following, both hand-written to understand the control loop — first clean lap in the demo above. Code in `code/`, calibration in `CALIBRATION.md`.
 
-🔜 **Phase 2 — make it see & react.** Closed-loop line-following / obstacle avoidance (next up).
+🔜 **Phase 3 — make it learn.** Train a neural network to drive it end-to-end (next up).
 ---
 
 *Built as a learning project, with AI as PM, instructor, and engineering support.*
-## Progress
-
-- ✅ **Phase 0** — Pi flashed, PiCar-X assembled, repo set up
-- ✅ **Phase 1 — Make it move** — servos calibrated, first autonomous drive,
-  camera feed verified. See `code/` and `CALIBRATION.md`.
-- ⏳ **Phase 2 — Make it see & react** — closed-loop line-following / obstacle
-  avoidance (in progress)
