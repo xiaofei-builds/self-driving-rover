@@ -4,8 +4,12 @@ Learning robotics, autonomous vehicles, and physical AI by building a small came
 
 This repo documents a hands-on project to go from zero to a working self-driving robot, built by a non-engineer with AI as the entire support team. The goal is genuine fluency in how autonomous systems *perceive, decide, and act* — the same mental model behind real AV companies, at a $150 scale.
 
-## 🏁 Phase 2 demo — first clean lap (grayscale edge-following)
-<img width="320" height="568" alt="demo_loop" src="https://github.com/user-attachments/assets/0d13a8c7-2567-4cd1-a980-4cf2adc88be5" />
+## Demo
+
+The rover driving a full lap **on its own** — camera → trained neural network → steering, running live on a Raspberry Pi:
+
+https://github.com/user-attachments/assets/d04fd80b-f6ff-4a6d-bd47-b589e957710e
+
 
 
 ## The core idea: sense → think → act
@@ -26,19 +30,18 @@ Master that loop on a small rover and the concepts scale directly to full-size a
 
 ## Roadmap
 
-| Phase | Goal | Key concepts |
-|-------|------|--------------|
-| 0 · Setup ✅| Tools, repo, order parts | control loop, SBC, version control |
-| 1 · Make it move ✅| Assemble; drive by code | motors, PWM, servos, actuators, headless control |
-| 2 · Make it see ✅| Camera + rule-based autonomy | computer vision, OpenCV, line following, obstacle avoidance |
-| 3 · Make it learn | Train a neural net to drive itself | data collection, training, inference, end-to-end learning |
-| 4 · Extend & document | One upgrade (3D printing / better sensor / ROS 2) + write-up | (varies) |
+| Phase | Goal | Key concepts | Status |
+|-------|------|--------------|--------|
+| 0 · Setup | Tools, repo, order parts | control loop, SBC, version control | ✅ |
+| 1 · Make it move | Assemble; drive by code | motors, PWM, servos, actuators, headless control | ✅ |
+| 2 · Make it see | Camera + rule-based autonomy | computer vision, OpenCV, line following, obstacle avoidance | ✅ |
+| 3 · Make it learn | Train a neural net to drive itself | data collection, training, inference, end-to-end learning | 🟢 in progress |
+| 4 · Extend & document | One upgrade (3D printing / better sensor / ROS 2) + write-up | (varies) | ⬜ |
 
 ## Status
 
-🟢 **Phase 2 complete — it sees and reacts.** Closed-loop obstacle avoidance (ultrasonic) and grayscale edge-following, both hand-written to understand the control loop — first clean lap in the demo above. Code in `code/`, calibration in `CALIBRATION.md`.
+🟢 **Phase 3 — it drives itself.** The rover collects driving data by manual teleop, trains a **PilotNet** CNN (NVIDIA DAVE-2 architecture) in the cloud, and runs the model on-device (TF-Lite) to steer itself around a track in real time. Recent work: diagnosed a mid-corner failure as regression-to-the-mean on thin data, and fixed it with **DAgger** (targeted correction data) plus **lighting augmentation** for robustness to changing light. Follow along in the commit history and project notes.
 
-🔜 **Phase 3 — make it learn.** Train a neural network to drive it end-to-end (next up).
 ---
 
 *Built as a learning project, with AI as PM, instructor, and engineering support.*
