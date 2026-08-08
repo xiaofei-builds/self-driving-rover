@@ -8,8 +8,7 @@ This repo documents a hands-on project to go from zero to a working self-driving
 
 The rover driving on its own — camera → trained neural network → steering, running live on a Raspberry Pi:
 
-<!-- DRAG autopilot_demo.mp4 ONTO THIS LINE IN THE GITHUB WEB EDITOR -->
-
+https://github.com/user-attachments/assets/88f626cc-050c-48b7-9850-fefdfd9f2f26
 
 ## The core idea: sense → think → act
 
