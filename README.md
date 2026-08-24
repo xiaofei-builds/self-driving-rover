@@ -34,7 +34,7 @@ Master that loop on a small rover and the concepts scale directly to full-size a
 | 1 · Make it move | Assemble; drive by code | motors, PWM, servos, actuators, headless control | ✅ |
 | 2 · Make it see | Camera + rule-based autonomy | computer vision, OpenCV, line following, obstacle avoidance | ✅ |
 | 3 · Make it learn | Train a neural net to drive itself | behavioral cloning, training, edge inference, memory, uncertainty | ✅ |
-| 4 · Extend & document | One upgrade (3D printing / depth camera / ROS 2) + write-up | (varies) | ⬜ next |
+| 4 · Production-ize with ROS 2 | Re-build the stack as ROS 2 nodes; package it | ROS 2 nodes/topics, DDS, QoS, colcon packaging, launch files, safety arbitration | 🔄 in progress |
 
 ## Status
 
@@ -48,9 +48,49 @@ The full physical-AI arc is working end to end: **collect → train → deploy �
 4. **Uncertainty-aware recovery.** Built a supervisory **fallback layer** over the learned policy: it watches the live steering stream for out-of-distribution behavior (thrash, or a fast collapse of a committed turn), **reverses to reacquire the lane**, and hands control back only once the model is steering the correct direction again — with a fail-safe stop if it can't. Validated on-car over multiple laps.
 5. **Generalization to a new track.** Put the memory model — trained only on the original track — on a **brand-new track** with different corners, layout, and lighting. It drove most of it straight from the first track's learning (real **distribution-shift generalization**); only one unfamiliar corner needed a small **targeted DAgger** top-up (~2k frames), after which the car ran **3 laps in each direction**. Adding that data slightly regressed one corner on the *original* track — a textbook **negative-transfer** trade-off in a fixed-capacity model, and a reminder to regression-test the whole operating domain after any change.
 
+## Phase 4 · Production-ize with ROS 2 (in progress)
+
+Phase 3 proved the *driving*. Phase 4 rebuilds the same **sense → think → act** loop on **ROS 2 (Jazzy)** as independent **nodes** that communicate over **topics**, then packages the whole thing so the rover starts with one command instead of five hand-started terminals. This is the "research code → real robotics codebase" step.
+
+**The node graph**
+
+```
+camera_node ──/camera/image_raw──▶ autopilot_node ──/cmd_vel_auto──▶ twist_mux ──/cmd_vel──▶ drive_node ──▶ PiCar-X
+                                                                        ▲
+                                    override_teleop ──/teleop/override──┘   (safety driver: guarded nudge / manual / latched STOP)
+```
+
+**Milestones**
+
+- **M1–M3** — ROS 2 install; a `drive_node` that is the sole owner of the hardware (Ackermann bicycle model, 0.5 s command watchdog); keyboard teleop.
+- **M4** — `camera_node` publishing frames at 15 Hz (with the sensor-data QoS the subscribers must match).
+- **M5** — recording live drives to **MCAP** with `rosbag2` for offline review in Foxglove.
+- **M6** — the trained CNN + recovery layer wrapped as `autopilot_node`, plus a **twist mux / arbiter** giving a real safety-driver override: guarded steering nudge, full manual, and a latched space-bar e-stop.
+- **M7** — packaged as a **colcon** package (`picarx_ros`) with one launch file:
+  `ros2 launch picarx_ros bringup.launch.py enable_motors:=true`
+
+**Two things worth calling out** (both are real-autonomy problems, not toy ones):
+
+- **Mixed runtime.** The CNN's TFLite interpreter lives in a Python virtualenv that the hardware library isn't in. The launch file runs the autopilot node under that venv's interpreter and every other node under system Python; ROS 2's **DDS** graph bridges the two over topics. A perception node needing libraries a control node doesn't is an everyday deployment reality.
+- **Unmeasured sign conventions bite.** Steering came up mirrored on a fresh deploy because nothing in the stack *measures* wheel direction — it's an assumption, and the net left/right is the product of four ±1 signs in series. The fix was to calibrate it once by watching the wheels and persist the value; the *real* fix is a sensor (IMU / wheel encoder) so the system can verify its own steering — which motivates the next hardware step.
+
+Full write-up: **[PHASE4_ROS2.md](PHASE4_ROS2.md)**.
+
 ## What's in this repo
 
 ```
+picarx_ros/                ROS 2 (Jazzy) package — Phase 4
+  package.xml, setup.py    colcon manifest + console-script entry points
+  launch/
+    bringup.launch.py      one-command bringup: camera + autopilot + mux + drive
+  picarx_ros/
+    camera_node.py         publishes /camera/image_raw at 15 Hz
+    drive_node.py          sole hardware owner; /cmd_vel → Ackermann servo + motor
+    twist_mux.py           arbiter: autopilot vs. operator override → /cmd_vel
+    autopilot_node.py      stateful CNN pilot + recovery → /cmd_vel_auto
+    override_teleop.py     keyboard safety driver (guarded nudge / manual / latched STOP)
+    key_teleop.py          simple direct-drive teleop
+
 code/
   # Phase 1 — make it move
   smoke_test.py          hardware bring-up: center servos, read sensors, no drive
@@ -98,6 +138,8 @@ The toy scale is deliberate — every problem here has a full-size analog:
 - **Epistemic uncertainty & OOD detection** ↔ knowing when the model doesn't know
 - **Minimal-risk maneuver / fallback policy** ↔ supervisory safety layers over learned controllers
 - **Edge inference** (TF-Lite, quantized, ring buffer) ↔ on-vehicle compute constraints
+- **Middleware, nodes & topics** (ROS 2, DDS, QoS) ↔ how real robot software is decomposed and wired
+- **Command arbitration / safety override** (the twist mux) ↔ how a safety driver / fallback outranks the autonomy
 
 ## How it's built
 
@@ -106,3 +148,5 @@ Written and debugged interactively, using AI as PM, instructor, and engineering 
 ---
 
 *A learning project — teaching a $150 rover to drive, to learn how real autonomy thinks.*
+
+---

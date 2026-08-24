@@ -1,0 +1,32 @@
+# colcon / ament build products -- never commit these
+build/
+install/
+log/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+
+# Trained model weights (large binary; distribute separately)
+*.tflite
+*.h5
+*.pt
+*.onnx
+
+# Recorded data / media (large)
+*.mcap
+*.bag
+*.db3
+*.mp4
+*.gif
+*.avi
+*.csv
+
+# Editor / OS cruft
+.vscode/
+.idea/
+*.swp
+.DS_Store
