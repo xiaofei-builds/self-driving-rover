@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  picarx.urdf  —  PiCar-X + LD19 LiDAR
+  base_link  = rear-axle centre, projected to the ground (REP-105, Ackermann convention).
+  base_laser = LD19 scan window (spin axis).
+
+  Measured transform base_link -> base_laser (Session 24):
+    xyz = 0.063  0  0.1285   (m): LiDAR spin axis 63 mm fwd of rear axle, on centreline,
+                                   scan window 128.5 mm above the floor.
+    rpy = 0  0  1.5708       (rad): +90 deg yaw. LD19 zero points to the car's LEFT,
+                                   so the car's dead-ahead reads ~270 deg in raw /scan.
+                                   THIS is the number S24 was all about — do not touch it
+                                   without re-running ~/yaw_cal.py.
+  All joints fixed -> no joint_state_publisher needed.
+-->
+<robot name="picarx">
+
+  <!-- Cosmetic body box, purely so RViz shows something with volume.
+       Dimensions approximate; nothing downstream depends on them. -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0.05 0 0.03" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.20 0.12 0.06"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.25 0.25 0.25 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- LD19 puck -->
+  <link name="base_laser">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.019" length="0.040"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.05 0.05 0.05 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- THE measured transform -->
+  <joint name="base_to_laser" type="fixed">
+    <parent link="base_link"/>
+    <child  link="base_laser"/>
+    <origin xyz="0.063 0 0.1285" rpy="0 0 1.5708"/>
+  </joint>
+
+</robot>

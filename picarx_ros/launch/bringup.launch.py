@@ -14,12 +14,25 @@ Examples
   # flip the physical steering direction if left/right is reversed (see STEERING SIGN below)
   ros2 launch picarx_ros bringup.launch.py enable_motors:=true drive_steer_sign:=1.0
 
-This starts FOUR background nodes wired camera -> autopilot -> twist_mux -> drive.
+This starts FOUR background nodes wired camera -> autopilot -> twist_mux -> drive,
+PLUS robot_state_publisher, which reads picarx.urdf and publishes the fixed
+base_link -> base_laser transform onto /tf_static (see ROBOT DESCRIPTION below).
 The keyboard override is deliberately NOT started here: it reads raw keystrokes and
 needs its own interactive terminal (a launched node does not own a TTY). Run it in a
 second terminal:
 
   ros2 run picarx_ros override_teleop
+
+ROBOT DESCRIPTION (why robot_state_publisher is here)
+-----------------------------------------------------
+picarx.urdf declares WHERE the LiDAR sits on the robot: base_laser is 0.063 m forward
+of the rear axle, 0.1285 m up, and yawed +90 deg (measured in Session 24 -- the LD19's
+zero points to the car's LEFT). robot_state_publisher reads that file and broadcasts the
+transform on /tf_static. Everything downstream that needs to place a /scan point in the
+robot frame -- RViz, slam_toolbox, Nav2 -- reads that transform. Without it, /scan is a
+cloud of ranges with no known origin. NOTE: this reads the urdf from the INSTALLED share
+dir, so `colcon build` must have run after any urdf change. All joints are fixed, so no
+joint_state_publisher is needed.
 
 STEERING SIGN (why left/right can come up reversed)
 ---------------------------------------------------
@@ -39,6 +52,9 @@ run the autopilot node under the venv's interpreter and everything else under sy
 Python; ROS 2's DDS graph lets the two interpreters talk over topics regardless.
 """
 
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
@@ -84,6 +100,21 @@ def generate_launch_description():
                         'only if the autopilot alone steers the wrong way vs. manual.'),
     ]
 
+    # robot_description: read the installed URDF text once at launch-generation time.
+    # get_package_share_directory resolves to the colcon-INSTALLED share dir, so the urdf
+    # must have been built in (setup.py data_files). All joints fixed -> no
+    # joint_state_publisher.
+    urdf_path = os.path.join(
+        get_package_share_directory('picarx_ros'), 'urdf', 'picarx.urdf')
+    with open(urdf_path, 'r') as f:
+        robot_description = f.read()
+
+    robot_state_publisher = Node(
+        package='robot_state_publisher', executable='robot_state_publisher',
+        name='robot_state_publisher', output='screen',
+        parameters=[{'robot_description': robot_description}],
+    )
+
     # Launch arguments arrive as STRINGS. ROS parameters are typed, so we coerce each
     # one to the type the node declared (bool / float) with ParameterValue.
     camera = Node(
@@ -117,4 +148,5 @@ def generate_launch_description():
         }],
     )
 
-    return LaunchDescription(declared_args + [camera, autopilot, twist_mux, drive])
+    return LaunchDescription(
+        declared_args + [robot_state_publisher, camera, autopilot, twist_mux, drive])

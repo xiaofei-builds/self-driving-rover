@@ -14,6 +14,8 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'),
             glob('launch/*.launch.py')),
+        (os.path.join('share', package_name, 'urdf'),
+            glob('urdf/*.urdf')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,7 +24,6 @@ setup(
     description='ROS 2 nodes for the PiCar-X self-driving rover '
                 '(camera, drive, twist mux, stateful-CNN autopilot, teleop).',
     license='MIT',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'camera_node = picarx_ros.camera_node:main',
