@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  picarx.urdf  —  PiCar-X + LD19 LiDAR
+  picarx.urdf  —  PiCar-X + LD19 LiDAR + BNO085 IMU
   base_link  = rear-axle centre, projected to the ground (REP-105, Ackermann convention).
   base_laser = LD19 scan window (spin axis).
+  imu_link   = BNO085 board centre.
 
   Measured transform base_link -> base_laser (Session 24):
     xyz = 0.063  0  0.1285   (m): LiDAR spin axis 63 mm fwd of rear axle, on centreline,
@@ -11,6 +12,13 @@
                                    so the car's dead-ahead reads ~270 deg in raw /scan.
                                    THIS is the number S24 was all about — do not touch it
                                    without re-running ~/yaw_cal.py.
+
+  Measured transform base_link -> imu_link (Session 30):
+    xyz = -0.0165  -0.002  0.055  (m): board centre 16.5 mm BEHIND rear axle,
+                                        2 mm RIGHT of centreline, 55 mm above floor.
+    rpy = 0  0  0   — flat mount (chip Z vertical, confirmed S29: gx/gy <0.05 during yaw).
+                      In-plane alignment is unmeasured but IRRELEVANT: the only signal we
+                      use is yaw rate about the vertical axis, invariant to in-plane pose.
   All joints fixed -> no joint_state_publisher needed.
 -->
 <robot name="picarx">
@@ -42,11 +50,31 @@
     </visual>
   </link>
 
-  <!-- THE measured transform -->
+  <!-- BNO085 IMU board -->
+  <link name="imu_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.020 0.018 0.003"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0.1 0.5 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- THE measured transform (S24) -->
   <joint name="base_to_laser" type="fixed">
     <parent link="base_link"/>
     <child  link="base_laser"/>
     <origin xyz="0.063 0 0.1285" rpy="0 0 1.5708"/>
+  </joint>
+
+  <!-- IMU mount transform (S30) -->
+  <joint name="base_to_imu" type="fixed">
+    <parent link="base_link"/>
+    <child  link="imu_link"/>
+    <origin xyz="-0.0165 -0.002 0.055" rpy="0 0 0"/>
   </joint>
 
 </robot>
