@@ -28,6 +28,8 @@ setup(
         'console_scripts': [
             'camera_node = picarx_ros.camera_node:main',
             'drive_node = picarx_ros.drive_node:main',
+            'odom_node = picarx_ros.odom_node:main',
+            'imu_node = picarx_ros.imu_node:main',
             'twist_mux = picarx_ros.twist_mux:main',
             'autopilot_node = picarx_ros.autopilot_node:main',
             'override_teleop = picarx_ros.override_teleop:main',

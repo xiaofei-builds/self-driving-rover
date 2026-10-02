@@ -70,6 +70,8 @@ def generate_launch_description():
     model_path = LaunchConfiguration('model_path')
     drive_steer_sign = LaunchConfiguration('drive_steer_sign')
     autopilot_steer_sign = LaunchConfiguration('autopilot_steer_sign')
+    odom_yaw_sign = LaunchConfiguration('odom_yaw_sign')
+    imu_yaw_sign = LaunchConfiguration('imu_yaw_sign')
 
     declared_args = [
         DeclareLaunchArgument(
@@ -98,6 +100,16 @@ def generate_launch_description():
             'autopilot_steer_sign', default_value='1.0',
             description='Sign folding CNN steering polarity into the published yaw. Change '
                         'only if the autopilot alone steers the wrong way vs. manual.'),
+        DeclareLaunchArgument(
+            'odom_yaw_sign', default_value='-1.0',
+            description='Sign applied to /cmd_vel angular.z when integrating odometry. '
+                        'CONFIRMED -1.0 on this car (S26): /cmd_vel angular.z is inverted '
+                        'vs ROS +z=CCW=LEFT, so odom yaw rises on a left turn only at -1.0.'),
+        DeclareLaunchArgument(
+            'imu_yaw_sign', default_value='1.0',
+            description='Sign applied to BNO085 gyro z when publishing /imu/data. '
+                        'S29 measured +1.0 in the mounted pose: a left/CCW turn '
+                        'reads gz positive, already matching REP-103 (+z=CCW=LEFT).'),
     ]
 
     # robot_description: read the installed URDF text once at launch-generation time.
@@ -148,5 +160,27 @@ def generate_launch_description():
         }],
     )
 
+    # odom_node: dead-reckoning command odometry (Phase 5, N1). Integrates
+    # /cmd_vel into the odom -> base_link transform. Lives in bringup for now;
+    # will move to a localization launch when we assemble the nav stack.
+    odom = Node(
+        package='picarx_ros', executable='odom_node', name='odom_node',
+        output='screen',
+        parameters=[{
+            'yaw_sign': ParameterValue(odom_yaw_sign, value_type=float),
+        }],
+    )
+
+    # imu_node: BNO085 gyro-only -> /imu/data (Phase 5, N1). Publishes the yaw
+    # rate the EKF needs; command-odom cannot give a trustworthy heading (S27).
+    # System python (adafruit libs are --user installed there) -> no prefix.
+    imu = Node(
+        package='picarx_ros', executable='imu_node', name='imu_node',
+        output='screen',
+        parameters=[{
+            'imu_yaw_sign': ParameterValue(imu_yaw_sign, value_type=float),
+        }],
+    )
+
     return LaunchDescription(
-        declared_args + [robot_state_publisher, camera, autopilot, twist_mux, drive])
+        declared_args + [robot_state_publisher, camera, autopilot, twist_mux, drive, odom, imu])
